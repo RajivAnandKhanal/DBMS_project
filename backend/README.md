@@ -6,7 +6,6 @@ There is a single user role (admin) - can perform full CRUD on bus students.
 ## Tech stack
 
 - Node.js + Express
-- PostgreSQL (via `pg`)
 - JWT auth (`jsonwebtoken`) + `bcryptjs` password hashing
 - No ORM — plain parameterized SQL queries
 
