@@ -1,109 +1,174 @@
 // ---------- Elements ----------
-const loginView = document.getElementById('login-view');
-const dashboardView = document.getElementById('dashboard-view');
-const loginForm = document.getElementById('login-form');
-const loginError = document.getElementById('login-error');
-const logoutBtn = document.getElementById('logout-btn');
-const currentUserLabel = document.getElementById('current-user');
+const loginView = document.getElementById("login-view");
+const dashboardView = document.getElementById("dashboard-view");
+const loginForm = document.getElementById("login-form");
+const loginError = document.getElementById("login-error");
+const logoutBtn = document.getElementById("logout-btn");
+const currentUserLabel = document.getElementById("current-user");
 
-const studentForm = document.getElementById('student-form');
-const formTitle = document.getElementById('form-title');
-const submitBtn = document.getElementById('submit-btn');
-const cancelEditBtn = document.getElementById('cancel-edit-btn');
-const formError = document.getElementById('form-error');
+const studentForm = document.getElementById("student-form");
+const formTitle = document.getElementById("form-title");
+const submitBtn = document.getElementById("submit-btn");
+const cancelEditBtn = document.getElementById("cancel-edit-btn");
+const formError = document.getElementById("form-error");
 
-const studentIdField = document.getElementById('student-id');
-const nameField = document.getElementById('name');
-const rollNoField = document.getElementById('roll_no');
-const departmentField = document.getElementById('department');
-const busRouteField = document.getElementById('bus_route');
-const feeStatusField = document.getElementById('fee_status');
-const phoneField = document.getElementById('phone');
-const addressField = document.getElementById('address');
+const studentIdField = document.getElementById("student-id");
+const nameField = document.getElementById("name");
+const rollNoField = document.getElementById("roll_no");
+// Modified to match the relational select IDs
+const departmentField = document.getElementById("department");
+const busRouteField = document.getElementById("bus_route");
+const feeStatusField = document.getElementById("fee_status");
+const phoneField = document.getElementById("phone");
+const addressField = document.getElementById("address");
 
-const tbody = document.getElementById('students-tbody');
-const emptyState = document.getElementById('empty-state');
-const searchInput = document.getElementById('search-input');
-const filterFeeStatus = document.getElementById('filter-fee-status');
-const refreshBtn = document.getElementById('refresh-btn');
+const tbody = document.getElementById("students-tbody");
+const emptyState = document.getElementById("empty-state");
+const searchInput = document.getElementById("search-input");
+const filterFeeStatus = document.getElementById("filter-fee-status");
+const refreshBtn = document.getElementById("refresh-btn");
 
-// ---------- View switching ----------
+// ---------- Relational Data Loading ----------
+
+/**
+ * Fetches Departments and Routes to populate the <select> dropdowns
+ */
+async function loadDropdowns() {
+  try {
+    // Assuming backend endpoints: GET /api/departments and GET /api/routes
+    // If using the generic api.js, you might use api.fetchData('/departments')
+    // or similar, but here we'll use a direct fetch or a presumed api method.
+    const depts = (await api.listDepartments?.()) || [];
+    const routes = (await api.listRoutes?.()) || [];
+
+    // Clear and Fill Department Select
+    if (departmentField) {
+      departmentField.innerHTML = '<option value="">Select Department</option>';
+      depts.forEach((d) => {
+        const opt = document.createElement("option");
+        opt.value = d.id;
+        opt.textContent = d.dept_name;
+        departmentField.appendChild(opt);
+      });
+    }
+
+    // Clear and Fill Route Select
+    if (busRouteField) {
+      busRouteField.innerHTML = '<option value="">Select Route</option>';
+      routes.forEach((r) => {
+        const opt = document.createElement("option");
+        opt.value = r.id;
+        opt.textContent = `${r.route_name} (${r.bus_number})`;
+        busRouteField.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.error("Error loading relational dropdowns:", err);
+  }
+}
+
+// ---------- View switching & Tabs ----------
+
 function showDashboard(username) {
-  loginView.classList.add('hidden');
-  dashboardView.classList.remove('hidden');
-  currentUserLabel.textContent = username ? `Signed in as ${username}` : '';
+  loginView.classList.add("hidden");
+  dashboardView.classList.remove("hidden");
+  currentUserLabel.textContent = username ? `Signed in as ${username}` : "";
+  loadDropdowns(); // Load dropdown data when dashboard opens
   loadStudents();
 }
 
 function showLogin() {
-  dashboardView.classList.add('hidden');
-  loginView.classList.remove('hidden');
+  dashboardView.classList.add("hidden");
+  loginView.classList.remove("hidden");
+}
+
+/**
+ * Switches between Students, Faculty, and Staff sections
+ */
+function showTab(tabId, event) {
+  // Hide all sections
+  document
+    .querySelectorAll(".dashboard-section")
+    .forEach((s) => s.classList.add("hidden"));
+  // Show selected section
+  const target = document.getElementById("section-" + tabId);
+  if (target) target.classList.remove("hidden");
+
+  // Update tab button styles
+  document
+    .querySelectorAll(".tab-btn")
+    .forEach((b) => b.classList.remove("active"));
+  if (event) event.target.classList.add("active");
 }
 
 // ---------- Auth ----------
-loginForm.addEventListener('submit', async (e) => {
+loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  loginError.classList.add('hidden');
+  loginError.classList.add("hidden");
 
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value;
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value;
 
   try {
     const data = await api.login(username, password);
     setToken(data.token);
-    localStorage.setItem('username', data.user.username);
+    localStorage.setItem("username", data.user.username);
     showDashboard(data.user.username);
     loginForm.reset();
   } catch (err) {
     loginError.textContent = err.message;
-    loginError.classList.remove('hidden');
+    loginError.classList.remove("hidden");
   }
 });
 
-logoutBtn.addEventListener('click', () => {
+logoutBtn.addEventListener("click", () => {
   setToken(null);
-  localStorage.removeItem('username');
+  localStorage.removeItem("username");
   showLogin();
 });
 
 // ---------- Student form (add / edit) ----------
 function resetForm() {
   studentForm.reset();
-  studentIdField.value = '';
-  feeStatusField.value = 'unpaid';
-  formTitle.textContent = 'Add Student';
-  submitBtn.textContent = 'Add Student';
-  cancelEditBtn.classList.add('hidden');
-  formError.classList.add('hidden');
+  studentIdField.value = "";
+  feeStatusField.value = "unpaid";
+  formTitle.textContent = "Add Student";
+  submitBtn.textContent = "Add Student";
+  cancelEditBtn.classList.add("hidden");
+  formError.classList.add("hidden");
 }
 
-cancelEditBtn.addEventListener('click', resetForm);
+cancelEditBtn.addEventListener("click", resetForm);
 
 function fillFormForEdit(student) {
   studentIdField.value = student.id;
   nameField.value = student.name;
   rollNoField.value = student.roll_no;
-  departmentField.value = student.department;
-  busRouteField.value = student.bus_route;
+
+  // These now expect the ID from the database
+  departmentField.value = student.department_id || "";
+  busRouteField.value = student.route_id || "";
+
   feeStatusField.value = student.fee_status;
-  phoneField.value = student.phone || '';
-  addressField.value = student.address || '';
+  phoneField.value = student.phone || "";
+  addressField.value = student.address || "";
 
   formTitle.textContent = `Edit Student — ${student.name}`;
-  submitBtn.textContent = 'Save Changes';
-  cancelEditBtn.classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  submitBtn.textContent = "Save Changes";
+  cancelEditBtn.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-studentForm.addEventListener('submit', async (e) => {
+studentForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  formError.classList.add('hidden');
+  formError.classList.add("hidden");
 
   const payload = {
     name: nameField.value.trim(),
     roll_no: rollNoField.value.trim(),
-    department: departmentField.value.trim(),
-    bus_route: busRouteField.value.trim(),
+    // Sending foreign keys (IDs) instead of strings
+    department_id: parseInt(departmentField.value),
+    route_id: parseInt(busRouteField.value),
     fee_status: feeStatusField.value,
     phone: phoneField.value.trim() || undefined,
     address: addressField.value.trim() || undefined,
@@ -121,17 +186,17 @@ studentForm.addEventListener('submit', async (e) => {
     loadStudents();
   } catch (err) {
     formError.textContent = err.message;
-    formError.classList.remove('hidden');
+    formError.classList.remove("hidden");
   }
 });
 
 // ---------- Student list ----------
 function buildQuery() {
   const params = new URLSearchParams();
-  if (searchInput.value.trim()) params.set('search', searchInput.value.trim());
-  if (filterFeeStatus.value) params.set('fee_status', filterFeeStatus.value);
+  if (searchInput.value.trim()) params.set("search", searchInput.value.trim());
+  if (filterFeeStatus.value) params.set("fee_status", filterFeeStatus.value);
   const qs = params.toString();
-  return qs ? `?${qs}` : '';
+  return qs ? `?${qs}` : "";
 }
 
 function feeBadge(status) {
@@ -139,21 +204,22 @@ function feeBadge(status) {
 }
 
 function renderStudents(students) {
-  tbody.innerHTML = '';
+  tbody.innerHTML = "";
 
   if (students.length === 0) {
-    emptyState.classList.remove('hidden');
+    emptyState.classList.remove("hidden");
     return;
   }
-  emptyState.classList.add('hidden');
+  emptyState.classList.add("hidden");
 
   for (const s of students) {
-    const tr = document.createElement('tr');
+    const tr = document.createElement("tr");
+    // Updated to show dept_name and route_name from the JOIN
     tr.innerHTML = `
       <td>${escapeHtml(s.name)}</td>
       <td>${escapeHtml(s.roll_no)}</td>
-      <td>${escapeHtml(s.department)}</td>
-      <td>${escapeHtml(s.bus_route)}</td>
+      <td>${escapeHtml(s.dept_name || "No Dept")}</td>
+      <td>${escapeHtml(s.route_name || "No Route")}</td>
       <td>${feeBadge(s.fee_status)}</td>
       <td class="row-actions">
         <button type="button" class="secondary" data-action="edit" data-id="${s.id}">Edit</button>
@@ -166,8 +232,8 @@ function renderStudents(students) {
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str ?? '';
+  const div = document.createElement("div");
+  div.textContent = str ?? "";
   return div.innerHTML;
 }
 
@@ -180,23 +246,23 @@ async function loadStudents() {
   }
 }
 
-searchInput.addEventListener('input', debounce(loadStudents, 300));
-filterFeeStatus.addEventListener('change', loadStudents);
-refreshBtn.addEventListener('click', loadStudents);
+searchInput.addEventListener("input", debounce(loadStudents, 300));
+filterFeeStatus.addEventListener("change", loadStudents);
+refreshBtn.addEventListener("click", loadStudents);
 
 // ---------- Row actions: edit / status / delete ----------
-tbody.addEventListener('click', async (e) => {
-  const btn = e.target.closest('button[data-action]');
+tbody.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
   if (!btn) return;
 
   const { action, id } = btn.dataset;
 
-  if (action === 'edit') {
+  if (action === "edit") {
     const { student } = await api.getStudent(id);
     fillFormForEdit(student);
   }
 
-  if (action === 'status') {
+  if (action === "status") {
     const { student } = await api.getStudent(id);
     const nextStatus = promptFeeStatus(student.fee_status);
     if (!nextStatus) return;
@@ -208,8 +274,8 @@ tbody.addEventListener('click', async (e) => {
     }
   }
 
-  if (action === 'delete') {
-    if (!confirm('Remove this student? This cannot be undone.')) return;
+  if (action === "delete") {
+    if (!confirm("Remove this student? This cannot be undone.")) return;
     try {
       await api.removeStudent(id);
       loadStudents();
@@ -220,15 +286,15 @@ tbody.addEventListener('click', async (e) => {
 });
 
 function promptFeeStatus(current) {
-  const options = ['paid', 'pending', 'unpaid'];
+  const options = ["paid", "pending", "unpaid"];
   const input = prompt(
-    `Enter new fee status (${options.join(' / ')}):`,
-    current
+    `Enter new fee status (${options.join(" / ")}):`,
+    current,
   );
   if (!input) return null;
   const value = input.trim().toLowerCase();
   if (!options.includes(value)) {
-    alert(`Invalid status. Must be one of: ${options.join(', ')}`);
+    alert(`Invalid status. Must be one of: ${options.join(", ")}`);
     return null;
   }
   return value;
@@ -246,7 +312,7 @@ function debounce(fn, delay) {
 // ---------- Init ----------
 (function init() {
   const token = getToken();
-  const username = localStorage.getItem('username');
+  const username = localStorage.getItem("username");
   if (token) {
     showDashboard(username);
   } else {

@@ -1,43 +1,47 @@
--- Bus Student Management System - Database Schema
--- Run: psql -U postgres -d bus_student_db -f schema.sql
-
-CREATE TABLE IF NOT EXISTS users (
+-- 1. Departments Table
+CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    dept_name VARCHAR(100) UNIQUE NOT NULL
 );
 
-CREATE TYPE fee_status_enum AS ENUM ('paid', 'unpaid', 'pending');
-
-CREATE TABLE IF NOT EXISTS students (
+-- 2. Bus Routes Table
+CREATE TABLE bus_routes (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(120) NOT NULL,
+    route_name VARCHAR(100) NOT NULL,
+    bus_number VARCHAR(20),
+    capacity INTEGER
+);
+
+-- 3. Modified Students Table (Linked to Dept and Route)
+CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     roll_no VARCHAR(50) UNIQUE NOT NULL,
-    department VARCHAR(100) NOT NULL,
-    bus_route VARCHAR(100) NOT NULL,
-    fee_status fee_status_enum NOT NULL DEFAULT 'unpaid',
-    phone VARCHAR(20),
-    address VARCHAR(255),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    department_id INTEGER REFERENCES departments(id),
+    route_id INTEGER REFERENCES bus_routes(id),
+    fee_status VARCHAR(20) DEFAULT 'unpaid',
+    phone VARCHAR(20)
 );
 
-CREATE INDEX IF NOT EXISTS idx_students_department ON students(department);
-CREATE INDEX IF NOT EXISTS idx_students_bus_route ON students(bus_route);
-CREATE INDEX IF NOT EXISTS idx_students_fee_status ON students(fee_status);
+-- 4. Faculty Table (Professors/Staff)
+CREATE TABLE faculty (
+    id SERIAL PRIMARY KEY,
+    faculty_name VARCHAR(100) NOT NULL,
+    employee_id VARCHAR(50) UNIQUE NOT NULL,
+    department_id INTEGER REFERENCES departments(id),
+    route_id INTEGER REFERENCES bus_routes(id),
+    designation VARCHAR(50)
+);
 
--- Keep updated_at fresh on every UPDATE
-CREATE OR REPLACE FUNCTION set_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- 5. Transport Staff (Drivers/Conductors)
+CREATE TABLE transport_staff (
+    id SERIAL PRIMARY KEY,
+    staff_name VARCHAR(100) NOT NULL,
+    role VARCHAR(50), -- e.g., Driver, Conductor
+    route_id INTEGER REFERENCES bus_routes(id),
+    phone VARCHAR(20)
+);
 
-DROP TRIGGER IF EXISTS trg_students_updated_at ON students;
-CREATE TRIGGER trg_students_updated_at
-BEFORE UPDATE ON students
-FOR EACH ROW
-EXECUTE FUNCTION set_updated_at();
+-- Seed Initial Data
+INSERT INTO departments (dept_name) VALUES ('Computer Science'), ('Mechanical'), ('Civil');
+INSERT INTO bus_routes (route_name, bus_number) VALUES ('Route A - North', 'B-01'), ('Route B - South', 'B-02');
