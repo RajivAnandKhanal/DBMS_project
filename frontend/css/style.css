@@ -214,6 +214,8 @@ tbody tr:hover { background: #f8fafb; }
 .badge.paid { background: var(--success); }
 .badge.pending { background: var(--pending); }
 .badge.unpaid { background: var(--danger); }
+.badge.student { background: #3b82f6; }
+.badge.staff { background: #8b5cf6; }
 
 .row-actions button {
   padding: 6px 10px;

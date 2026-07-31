@@ -1,18 +1,19 @@
 const db = require("../db");
 
 const FEE_STATUSES = ["paid", "unpaid", "pending"];
+const MEMBER_TYPES = ["student", "staff"];
 
-// GET /api/students?search=&department_id=&route_id=&fee_status=
+// GET /api/students?search=&department_id=&route_id=&fee_status=&member_type=
 async function listStudents(req, res, next) {
   try {
-    const { search, department_id, route_id, fee_status } = req.query;
+    const { search, department_id, route_id, fee_status, member_type } = req.query;
     const conditions = [];
     const values = [];
 
     // Base query using the recommendation: JOIN with departments and bus_routes
     let queryText = `
       SELECT 
-        s.id, s.name, s.roll_no, s.fee_status, s.phone, s.address, s.created_at,
+        s.id, s.name, s.roll_no, s.member_type, s.fee_status, s.phone, s.address, s.created_at,
         d.dept_name, 
         r.route_name, 
         r.bus_number 
@@ -38,6 +39,10 @@ async function listStudents(req, res, next) {
     if (fee_status) {
       values.push(fee_status);
       conditions.push(`s.fee_status = $${values.length}`);
+    }
+    if (member_type) {
+      values.push(member_type);
+      conditions.push(`s.member_type = $${values.length}`);
     }
 
     if (conditions.length > 0) {
@@ -82,6 +87,7 @@ async function createStudent(req, res, next) {
     const {
       name,
       roll_no,
+      member_type,
       department_id,
       route_id,
       fee_status,
@@ -96,6 +102,12 @@ async function createStudent(req, res, next) {
       });
     }
 
+    if (member_type && !MEMBER_TYPES.includes(member_type)) {
+      return res.status(400).json({
+        error: `member_type must be one of: ${MEMBER_TYPES.join(", ")}`,
+      });
+    }
+
     if (fee_status && !FEE_STATUSES.includes(fee_status)) {
       return res.status(400).json({
         error: `fee_status must be one of: ${FEE_STATUSES.join(", ")}`,
@@ -103,12 +115,13 @@ async function createStudent(req, res, next) {
     }
 
     const result = await db.query(
-      `INSERT INTO students (name, roll_no, department_id, route_id, fee_status, phone, address)
-       VALUES ($1, $2, $3, $4, COALESCE($5, 'unpaid'), $6, $7)
+      `INSERT INTO students (name, roll_no, member_type, department_id, route_id, fee_status, phone, address)
+       VALUES ($1, $2, COALESCE($3, 'student'), $4, $5, COALESCE($6, 'unpaid'), $7, $8)
        RETURNING *`,
       [
         name,
         roll_no,
+        member_type,
         department_id,
         route_id,
         fee_status,
@@ -130,12 +143,19 @@ async function updateStudent(req, res, next) {
     const {
       name,
       roll_no,
+      member_type,
       department_id,
       route_id,
       fee_status,
       phone,
       address,
     } = req.body;
+
+    if (member_type && !MEMBER_TYPES.includes(member_type)) {
+      return res.status(400).json({
+        error: `member_type must be one of: ${MEMBER_TYPES.join(", ")}`,
+      });
+    }
 
     if (fee_status && !FEE_STATUSES.includes(fee_status)) {
       return res.status(400).json({
@@ -147,14 +167,15 @@ async function updateStudent(req, res, next) {
       `UPDATE students SET
          name = COALESCE($1, name),
          roll_no = COALESCE($2, roll_no),
-         department_id = COALESCE($3, department_id),
-         route_id = COALESCE($4, route_id),
-         fee_status = COALESCE($5, fee_status),
-         phone = COALESCE($6, phone),
-         address = COALESCE($7, address)
-       WHERE id = $8
+         member_type = COALESCE($3, member_type),
+         department_id = COALESCE($4, department_id),
+         route_id = COALESCE($5, route_id),
+         fee_status = COALESCE($6, fee_status),
+         phone = COALESCE($7, phone),
+         address = COALESCE($8, address)
+       WHERE id = $9
        RETURNING *`,
-      [name, roll_no, department_id, route_id, fee_status, phone, address, id],
+      [name, roll_no, member_type, department_id, route_id, fee_status, phone, address, id],
     );
 
     if (result.rows.length === 0) {

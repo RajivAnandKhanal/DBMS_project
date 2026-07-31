@@ -15,6 +15,7 @@ const formError = document.getElementById("form-error");
 const studentIdField = document.getElementById("student-id");
 const nameField = document.getElementById("name");
 const rollNoField = document.getElementById("roll_no");
+const memberTypeField = document.getElementById("member_type");
 // Modified to match the relational select IDs
 const departmentField = document.getElementById("department");
 const busRouteField = document.getElementById("bus_route");
@@ -26,6 +27,7 @@ const tbody = document.getElementById("students-tbody");
 const emptyState = document.getElementById("empty-state");
 const searchInput = document.getElementById("search-input");
 const filterFeeStatus = document.getElementById("filter-fee-status");
+const filterMemberType = document.getElementById("filter-member-type");
 const refreshBtn = document.getElementById("refresh-btn");
 
 // ---------- Relational Data Loading ----------
@@ -38,8 +40,10 @@ async function loadDropdowns() {
     // Assuming backend endpoints: GET /api/departments and GET /api/routes
     // If using the generic api.js, you might use api.fetchData('/departments')
     // or similar, but here we'll use a direct fetch or a presumed api method.
-    const depts = (await api.listDepartments?.()) || [];
-    const routes = (await api.listRoutes?.()) || [];
+    const deptRes = await api.listDepartments();
+    const routeRes = await api.listRoutes();
+    const depts = deptRes.departments || [];
+    const routes = routeRes.routes || [];
 
     // Clear and Fill Department Select
     if (departmentField) {
@@ -82,25 +86,6 @@ function showLogin() {
   loginView.classList.remove("hidden");
 }
 
-/**
- * Switches between Students, Faculty, and Staff sections
- */
-function showTab(tabId, event) {
-  // Hide all sections
-  document
-    .querySelectorAll(".dashboard-section")
-    .forEach((s) => s.classList.add("hidden"));
-  // Show selected section
-  const target = document.getElementById("section-" + tabId);
-  if (target) target.classList.remove("hidden");
-
-  // Update tab button styles
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((b) => b.classList.remove("active"));
-  if (event) event.target.classList.add("active");
-}
-
 // ---------- Auth ----------
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -131,6 +116,7 @@ logoutBtn.addEventListener("click", () => {
 function resetForm() {
   studentForm.reset();
   studentIdField.value = "";
+  memberTypeField.value = "student";
   feeStatusField.value = "unpaid";
   formTitle.textContent = "Add Student";
   submitBtn.textContent = "Add Student";
@@ -144,6 +130,7 @@ function fillFormForEdit(student) {
   studentIdField.value = student.id;
   nameField.value = student.name;
   rollNoField.value = student.roll_no;
+  memberTypeField.value = student.member_type || "student";
 
   // These now expect the ID from the database
   departmentField.value = student.department_id || "";
@@ -166,6 +153,7 @@ studentForm.addEventListener("submit", async (e) => {
   const payload = {
     name: nameField.value.trim(),
     roll_no: rollNoField.value.trim(),
+    member_type: memberTypeField.value,
     // Sending foreign keys (IDs) instead of strings
     department_id: parseInt(departmentField.value),
     route_id: parseInt(busRouteField.value),
@@ -195,6 +183,7 @@ function buildQuery() {
   const params = new URLSearchParams();
   if (searchInput.value.trim()) params.set("search", searchInput.value.trim());
   if (filterFeeStatus.value) params.set("fee_status", filterFeeStatus.value);
+  if (filterMemberType.value) params.set("member_type", filterMemberType.value);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -218,6 +207,7 @@ function renderStudents(students) {
     tr.innerHTML = `
       <td>${escapeHtml(s.name)}</td>
       <td>${escapeHtml(s.roll_no)}</td>
+      <td><span class="badge ${s.member_type}">${escapeHtml(s.member_type || "student")}</span></td>
       <td>${escapeHtml(s.dept_name || "No Dept")}</td>
       <td>${escapeHtml(s.route_name || "No Route")}</td>
       <td>${feeBadge(s.fee_status)}</td>
@@ -248,6 +238,7 @@ async function loadStudents() {
 
 searchInput.addEventListener("input", debounce(loadStudents, 300));
 filterFeeStatus.addEventListener("change", loadStudents);
+filterMemberType.addEventListener("change", loadStudents);
 refreshBtn.addEventListener("click", loadStudents);
 
 // ---------- Row actions: edit / status / delete ----------

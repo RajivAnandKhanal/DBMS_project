@@ -5,6 +5,7 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/auth.routes');
 const studentRoutes = require('./routes/student.routes');
+const lookupRoutes = require('./routes/lookup.routes');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -16,6 +17,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api', lookupRoutes);
 
 // Serve the lightweight static frontend (no build step required)
 const frontendDir = path.join(__dirname, '..', '..', 'frontend');

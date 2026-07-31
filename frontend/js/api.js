@@ -1,18 +1,18 @@
 // Thin wrapper around the backend REST API.
 // Same-origin by default since Express serves this frontend; override if hosted separately.
-const API_BASE = window.API_BASE || '/api';
+const API_BASE = window.API_BASE || "/api";
 
 function getToken() {
-  return localStorage.getItem('token');
+  return localStorage.getItem("token");
 }
 
 function setToken(token) {
-  if (token) localStorage.setItem('token', token);
-  else localStorage.removeItem('token');
+  if (token) localStorage.setItem("token", token);
+  else localStorage.removeItem("token");
 }
 
-async function apiRequest(path, { method = 'GET', body } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+async function apiRequest(path, { method = "GET", body } = {}) {
+  const headers = { "Content-Type": "application/json" };
   const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
@@ -34,13 +34,24 @@ async function apiRequest(path, { method = 'GET', body } = {}) {
 
 const api = {
   login: (username, password) =>
-    apiRequest('/auth/login', { method: 'POST', body: { username, password } }),
+    apiRequest("/auth/login", {
+      method: "POST",
+      body: { username, password },
+    }),
 
-  listStudents: (query = '') => apiRequest(`/students${query}`),
+  listDepartments: () => apiRequest("/departments"),
+  listRoutes: () => apiRequest("/routes"),
+
+  listStudents: (query = "") => apiRequest(`/students${query}`),
   getStudent: (id) => apiRequest(`/students/${id}`),
-  createStudent: (payload) => apiRequest('/students', { method: 'POST', body: payload }),
-  updateStudent: (id, payload) => apiRequest(`/students/${id}`, { method: 'PUT', body: payload }),
+  createStudent: (payload) =>
+    apiRequest("/students", { method: "POST", body: payload }),
+  updateStudent: (id, payload) =>
+    apiRequest(`/students/${id}`, { method: "PUT", body: payload }),
   updateStudentStatus: (id, payload) =>
-    apiRequest(`/students/${id}/status`, { method: 'PATCH', body: payload }),
-  removeStudent: (id) => apiRequest(`/students/${id}`, { method: 'DELETE' }),
+    apiRequest(`/students/${id}/status`, {
+      method: "PATCH",
+      body: payload,
+    }),
+  removeStudent: (id) => apiRequest(`/students/${id}`, { method: "DELETE" }),
 };

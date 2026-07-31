@@ -62,12 +62,23 @@
                 <input type="text" id="roll_no" required />
               </div>
               <div>
+                <label for="member_type">Type</label>
+                <select id="member_type">
+                  <option value="student">Student</option>
+                  <option value="staff">Staff</option>
+                </select>
+              </div>
+              <div>
                 <label for="department">Department</label>
-                <input type="text" id="department" required />
+                <select id="department" required>
+                  <option value="">Select department</option>
+                </select>
               </div>
               <div>
                 <label for="bus_route">Bus Route</label>
-                <input type="text" id="bus_route" required />
+                <select id="bus_route" required>
+                  <option value="">Select route</option>
+                </select>
               </div>
               <div>
                 <label for="fee_status">Fee Status</label>
@@ -115,6 +126,11 @@
                 <option value="pending">Pending</option>
                 <option value="unpaid">Unpaid</option>
               </select>
+              <select id="filter-member-type">
+                <option value="">Students & Staff</option>
+                <option value="student">Students only</option>
+                <option value="staff">Staff only</option>
+              </select>
               <button id="refresh-btn" class="secondary">Refresh</button>
             </div>
           </div>
@@ -125,6 +141,7 @@
                 <tr>
                   <th>Name</th>
                   <th>Roll No.</th>
+                  <th>Type</th>
                   <th>Department</th>
                   <th>Bus Route</th>
                   <th>Fee Status</th>
@@ -136,63 +153,6 @@
               </tbody>
             </table>
             <p id="empty-state" class="hidden">No students found.</p>
-          </div>
-        </div>
-        <!-- Inside the <main class="container"> -->
-
-        <!-- TAB NAVIGATION -->
-        <div class="tabs" style="margin-bottom: 20px; display: flex; gap: 10px">
-          <button onclick="showTab('students')" class="tab-btn active">
-            Students
-          </button>
-          <button onclick="showTab('faculty')" class="tab-btn">Faculty</button>
-          <button onclick="showTab('staff')" class="tab-btn">
-            Transport Staff
-          </button>
-        </div>
-
-        <!-- STUDENT SECTION (Existing but updated with dropdowns) -->
-        <div id="section-students" class="dashboard-section">
-          <div class="card">
-            <h2>Manage Students</h2>
-            <form id="student-form" class="grid">
-              <input type="text" id="name" placeholder="Name" required />
-              <input type="text" id="roll_no" placeholder="Roll No" required />
-
-              <label>Department</label>
-              <select id="student_dept_id" class="dept-select"></select>
-
-              <label>Bus Route</label>
-              <select id="student_route_id" class="route-select"></select>
-
-              <button type="submit">Add Student</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- FACULTY SECTION (New) -->
-        <div id="section-faculty" class="dashboard-section hidden">
-          <div class="card">
-            <h2>Manage Faculty</h2>
-            <form id="faculty-form" class="grid">
-              <input
-                type="text"
-                id="f_name"
-                placeholder="Faculty Name"
-                required
-              />
-              <input
-                type="text"
-                id="f_emp_id"
-                placeholder="Employee ID"
-                required
-              />
-
-              <label>Department</label>
-              <select id="faculty_dept_id" class="dept-select"></select>
-
-              <button type="submit">Add Faculty</button>
-            </form>
           </div>
         </div>
       </main>
