@@ -101,12 +101,12 @@ npm start
 
 ## 👨‍💻 Team
 
-| Member          | Roll Number | Role                    |
-| --------------- | ----------- | ----------------------- |
-| Rajiv Khanal    | 61          | Backend Development     |
-| Sudip Bayalkoti | 59          | Frontend Development    |
-| Nawaraj Pathank | 62          | Database Design         |
-| Alok Dhakal     | 60          | Testing & Documentation |
+| Member          | Roll Number | Role                    | Registraton Number |
+| --------------- | ----------- | ----------------------- | ------------------ |
+| Rajiv Khanal    | 61          | Backend Development     | 036129-24          |
+| Sudip Bayalkoti | 59          | Frontend Development    | 036110-24          |
+| Nawaraj Pathank | 62          | Database Design         | 036137-24          |
+| Alok Dhakal     | 60          | Testing & Documentation | 036115-24          |
 
 ---
 
